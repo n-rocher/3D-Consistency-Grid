@@ -9,7 +9,7 @@ import pyvista as pv
 from rich import print
 from pyquaternion import Quaternion
 
-DATASET_DIR = "U:/nuScenes/"
+DATASET_DIR = "F:/nuScenes/"
 SAMPLE_DATA = DATASET_DIR + "v1.0-trainval/sample_data.json"
 EGO_POSE = DATASET_DIR + "v1.0-trainval/ego_pose.json"
 
@@ -107,9 +107,9 @@ if __name__ == "__main__":
 
     output_points = None
     default = 500
-    lidar = 25
-    space = 10
-    for index in range(default, default + lidar * space, space):
+    lidar = 800
+    space = 15
+    for index in range(default, default + lidar, space):
 
         print(lidar_files[index])
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         egopose = EGOPOSE_DATABASE[DATABASE[file_name_list[index]]["ego_pose_token"]]
 
         translation = np.eye(4, dtype=np.float32)
-        translation[:, 3] = np.array(egopose["translation"] + [1, ], dtype=np.float32)
+        translation[:, 3] = np.array([egopose["translation"][1], egopose["translation"][0], egopose["translation"][2], 1/10], dtype=np.float32)
 
         # rotation_matrix = np.eye(4, dtype=np.float32)
         # rotation_matrix[:3, :3] = Quaternion(egopose["rotation"]).inverse.rotation_matrix
@@ -138,13 +138,13 @@ if __name__ == "__main__":
         #                 [0, 0, 0, 1]
         #             ])
 
-        points = R_z @ points.T
-        points = points.T
+        # points = R_z @ points.T
+        # points = points.T
         points = translation @ points.T
         points = points.T
 
         if output_points is None:
-            output_points = points
+            output_points = np.copy(points)
         else:
             output_points = np.concatenate((output_points, points))
 
