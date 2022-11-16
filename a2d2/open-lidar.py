@@ -1,14 +1,15 @@
 import os
 from glob import glob
 import json
+import cv2
 
 import pyvista as pv
 import numpy as np
 import numpy.linalg as la
 
 DATASET_DIR = "E:/A2D2/"
-LIDAR_SENSORS = ["cam_front_center", "cam_front_left", "cam_front_right", "cam_rear_center", "cam_side_left", "cam_side_right"]
-
+LIDAR_SENSORS = ["cam_front_left", "cam_front_right", "cam_rear_center", "cam_side_left", "cam_side_right"]
+#"cam_front_center", 
 EPSILON = 1.0e-10 # norm should not be small
 
 def get_origin_of_a_view(view):
@@ -122,9 +123,9 @@ if __name__ == "__main__":
             output_points = None
 
             for lidar_sensor in LIDAR_SENSORS: 
-                cam_front_center = np.load(lidar_data[lidar_sensor])
+                lidar_points = np.load(lidar_data[lidar_sensor])
 
-                points = cam_front_center["pcloud_points"]
+                points = lidar_points["pcloud_points"]
 
                 src_view = CONFIG['cameras'][lidar_sensor[4:]]['view']
 
@@ -135,18 +136,39 @@ if __name__ == "__main__":
                 points_hom[:, 0:3] = points
                 points_trans = (np.dot(trans, points_hom.T)).T 
                 
-                points = points_trans[:,0:3]
+                points = points_trans[:,0:3].astype(np.float16)
 
                 if output_points is None:
                     output_points = points
                 else:
                     output_points = np.concatenate((output_points, points))
 
-            output_points = output_points.astype(np.float16)
+            output_points = output_points
 
             print(sync_name, output_points.shape, output_points.dtype)
 
-            np.savez_compressed(DATASET_DIR + sequence_path + "/lidar_360/" + sync_name + ".npz", points=output_points)
+            # np.savez_compressed(DATASET_DIR + sequence_path + "/lidar_360/" + sync_name + ".npz", points=output_points)
 
             # pdata = pv.PolyData(output_points.astype(np.float32))
             # pdata.plot(cmap='jet')
+
+
+            grid = np.zeros((1000, 1000), dtype=np.uint8)
+
+            points = output_points
+
+            x = points[:, 0]
+            y = points[:, 1]
+
+            point2d = np.copy(points[:, :2])
+            point2d = point2d * 10
+            point2d = point2d.astype(int)
+            point2d = point2d + 500
+
+            point2d = point2d[point2d[:, 0] < 1000]
+            point2d = point2d[point2d[:, 1] < 1000]
+
+            grid[point2d[:, 0], point2d[:, 1]] = 1
+
+            cv2.imshow("points", grid * 255)
+            cv2.waitKey(5)

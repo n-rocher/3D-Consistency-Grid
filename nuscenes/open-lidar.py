@@ -3,7 +3,7 @@ from glob import glob
 import pyvista as pv
 import numpy as np
 
-DATASET_DIR = "U:/nuScenes/sweeps/"
+DATASET_DIR = "F:/nuScenes/sweeps/"
 
 def open_lidar(file_name: str, min_dist: float = 2):
 

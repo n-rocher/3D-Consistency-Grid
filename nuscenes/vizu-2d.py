@@ -133,8 +133,6 @@ if __name__ == "__main__":
         points = R_z @ points.T
         points = points.T
 
-
-
         grid = np.zeros((1000, 1000), dtype=np.uint8)
 
         x = points[:, 0]
